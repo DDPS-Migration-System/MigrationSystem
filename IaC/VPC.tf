@@ -33,6 +33,7 @@ resource "aws_subnet" "stablespot_public_subnet" {
   vpc_id                  = aws_vpc.stablespot_vpc.id
   cidr_block              = cidrsubnet(aws_vpc.stablespot_vpc.cidr_block, 8, count.index)
   availability_zone       = data.aws_availability_zones.available.names[count.index]
+  enable_resource_name_dns_a_record_on_launch = true
   map_public_ip_on_launch = true
 
   tags = {

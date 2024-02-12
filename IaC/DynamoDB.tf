@@ -19,6 +19,11 @@ resource "aws_dynamodb_table" "example_table" {
   }
 
   attribute {
+    name = "AvailabilityZone"
+    type = "S"
+  }
+
+  attribute {
     name = "Status"
     type = "S"
   }
@@ -30,6 +35,16 @@ resource "aws_dynamodb_table" "example_table" {
 
   attribute {
     name = "UserData"
+    type = "S"
+  }
+
+  attribute {
+    name = "SupportSSH"
+    type = "S"
+  }
+
+  attribute {
+    name = "SupportWebService"
     type = "S"
   }
 
