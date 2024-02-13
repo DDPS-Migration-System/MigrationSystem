@@ -1,4 +1,9 @@
+
 variable "region" {
+    type = string
+}
+
+variable "profile" {
     type = string
 }
 
@@ -10,3 +15,4 @@ variable "prefix" {
 variable "domain" {
     type = string
 }
+

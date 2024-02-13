@@ -1,5 +1,5 @@
 resource "aws_security_group" "efs-sg" {
-  vpc_id = aws_vpc.vpc.id
+  vpc_id = aws_vpc.stablespot_vpc.id
   name   = "${var.prefix}-efs-sg"
   egress = [{
     cidr_blocks      = ["0.0.0.0/0"]

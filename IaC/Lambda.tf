@@ -1,7 +1,7 @@
 resource "aws_lambda_function" "stablespot_create_spot" {
   function_name = "stablespot-create-spot"
-  handler       = "index.handler" # 가정: Lambda 함수의 핸들러는 index 파일의 handler 메서드
-  runtime       = "python3.8"
+  handler       = "lambda_function.lambda_handler" # 가정: Lambda 함수의 핸들러는 index 파일의 handler 메서드
+  runtime       = "python3.10"
   role          = aws_iam_role.lambda_exec_role.arn
   filename      = "${path.module}/stablespot-create-spot.zip"
 
@@ -14,8 +14,8 @@ resource "aws_lambda_function" "stablespot_create_spot" {
 
 resource "aws_lambda_function" "stablespot_migration_by_interrupt" {
   function_name = "stablespot-migration-by-interrupt"
-  handler       = "index.handler"
-  runtime       = "python3.8"
+  handler       = "lambda_function.lambda_handler"
+  runtime       = "python3.10"
   role          = aws_iam_role.lambda_exec_role.arn
   filename      = "${path.module}/stablespot-migration-by-interrupt.zip"
 
@@ -23,6 +23,48 @@ resource "aws_lambda_function" "stablespot_migration_by_interrupt" {
 
   tags = {
     Name = "${var.prefix}-migration-by-interrupt"
+  }
+}
+
+resource "aws_lambda_function" "stablespot_paginator" {
+  function_name = "stablespot-paginator"
+  handler       = "lambda_function.lambda_handler"
+  runtime       = "python3.10"
+  role          = aws_iam_role.lambda_exec_role.arn
+  filename      = "${path.module}/stablespot-paginator.zip"
+
+  source_code_hash = filebase64sha256("${path.module}/stablespot-paginator.zip")
+
+  tags = {
+    Name = "${var.prefix}-paginator"
+  }
+}
+
+resource "aws_lambda_function" "stablespot_controller" {
+  function_name = "stablespot-controller"
+  handler       = "lambda_function.lambda_handler"
+  runtime       = "python3.10"
+  role          = aws_iam_role.lambda_exec_role.arn
+  filename      = "${path.module}/stablespot-controller.zip"
+
+  source_code_hash = filebase64sha256("${path.module}/stablespot-controller.zip")
+
+  tags = {
+    Name = "${var.prefix}-controller"
+  }
+}
+
+resource "aws_lambda_function" "stablespot_registor" {
+  function_name = "stablespot-registor"
+  handler       = "lambda_function.lambda_handler"
+  runtime       = "python3.10"
+  role          = aws_iam_role.lambda_exec_role.arn
+  filename      = "${path.module}/stablespot-registor.zip"
+
+  source_code_hash = filebase64sha256("${path.module}/stablespot-registor.zip")
+
+  tags = {
+    Name = "${var.prefix}-registor"
   }
 }
 
@@ -69,10 +111,43 @@ resource "aws_lambda_function_url" "stablespot_migration_by_interrupt_url" {
   authorization_type = "NONE"
 }
 
+resource "aws_lambda_function_url" "stablespot_paginator_url" {
+  function_name = aws_lambda_function.stablespot_paginator.function_name
+  qualifier     = "$LATEST"
+
+  authorization_type = "NONE"
+}
+
+resource "aws_lambda_function_url" "stablespot_controller_url" {
+  function_name = aws_lambda_function.stablespot_controller.function_name
+  qualifier     = "$LATEST"
+
+  authorization_type = "NONE"
+}
+
+resource "aws_lambda_function_url" "stablespot_registor_url" {
+  function_name = aws_lambda_function.stablespot_registor.function_name
+  qualifier     = "$LATEST"
+
+  authorization_type = "NONE"
+}
+
 output "stablespot_create_spot_function_url" {
   value = aws_lambda_function_url.stablespot_create_spot_url.function_url
 }
 
 output "stablespot_migration_by_interrupt_function_url" {
   value = aws_lambda_function_url.stablespot_migration_by_interrupt_url.function_url
+}
+
+output "stablespot_paginator_function_url" {
+  value = aws_lambda_function_url.stablespot_paginator_url.function_url
+}
+
+output "stablespot_controller_function_url" {
+  value = aws_lambda_function_url.stablespot_controller_url.function_url
+}
+
+output "stablespot_registor_function_url" {
+  value = aws_lambda_function_url.stablespot_registor_url.function_url
 }
