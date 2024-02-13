@@ -9,9 +9,10 @@ iam_client = boto3.client('iam')
 ssm_client = boto3.client('ssm')
 cognito_client = boto3.client('cognito-idp')
 dynamodb = boto3.resource('dynamodb')
+elbv2_client = boto3.client('elbv2')
 
 table = dynamodb.Table(f'{prefix}DynamoDB')
-EFS_ID = ssm.get_parameter(Name=f"{prefix}-efs-id", WithDecryhption=False)['Parameter']['Value']
+EFS_ID = ssm_client.get_parameter(Name=f"{prefix}-efs-id", WithDecryhption=False)['Parameter']['Value']
 user_pools = cognito_client.list_user_pools(MaxResult=60)
 
 def lambda_handler(event, context):
@@ -124,6 +125,7 @@ sudo podman run --name {instance_name} -e GRANT_SUDO=yes --user root {[f"-p {por
             'UserData': base64.b64encode(init_userdata_arm.encode('utf-8')).decode('utf-8')
         }
     )
+    instance_id = response['SpotInstanceRequests'][0]['InstanceId']
     # 생성된 인스턴스를 인스턴스 관리 DB에 기록
     item = {
         'InstanceId': '',
@@ -139,7 +141,7 @@ sudo podman run --name {instance_name} -e GRANT_SUDO=yes --user root {[f"-p {por
     response = table.put_item(Item=item)
     # 생성된 인스턴스의 CPU, MEM Usage를 체크하는 EventBridge Alarm, Rule을 생성 후 Migrator에 연결
     # 웹페이지를 지원한다면 ALB에 연결
-    if dynamo_items['SupportWebService'] != False:
+    if web_support != False:
         user_pool_id = None
         for user_pool in user_pools['UserPools']:
             if user_pool['Name'] == f"{prefix}-user-pool":
@@ -157,7 +159,7 @@ sudo podman run --name {instance_name} -e GRANT_SUDO=yes --user root {[f"-p {por
         albs = elbv2_client.describe_load_balancers(Names=[f'{prefix}-alb'])
         alb_arn = albs['LoadBalancers'][0]['LoadBalancerArn']
         # ALB에 리스너 생성 (예: HTTP 80 포트 리스너)
-        listener_response = elbv2.create_listener(
+        listener_response = elbv2_client.create_listener(
             LoadBalancerArn=alb_arn,
             Protocol='HTTPS',
             Port=443,
@@ -173,7 +175,7 @@ sudo podman run --name {instance_name} -e GRANT_SUDO=yes --user root {[f"-p {por
 
         listener_arn = listener_response['Listeners'][0]['ListenerArn']
         # 타겟 그룹 생성
-        tg_response = elbv2.create_target_group(
+        tg_response = elbv2_client.create_target_group(
             Name='my-target-group',
             Protocol='HTTP',
             Port=80,
@@ -186,7 +188,7 @@ sudo podman run --name {instance_name} -e GRANT_SUDO=yes --user root {[f"-p {por
         target_group_arn = tg_response['TargetGroups'][0]['TargetGroupArn']
 
         # 리스너 규칙 추가
-        elbv2.create_rule(
+        elbv2_client.create_rule(
             ListenerArn=listener_arn,
             Conditions=[{
                 'Field': 'path-pattern',
@@ -197,7 +199,7 @@ sudo podman run --name {instance_name} -e GRANT_SUDO=yes --user root {[f"-p {por
                 'Type': 'authenticate-cognito',
                 'AuthenticateCognitoConfig': {
                     'UserPoolArn': user_pool_arn,
-                    'UserPoolClientId': cognito_user_pool_client_id,
+                    'UserPoolClientId': user_pool_client_id,
                     'UserPoolDomain': user_pool_domain,  # Cognito User Pool 도메인
                     'SessionTimeout': 3600,
                     'Scope': 'openid',
@@ -211,7 +213,7 @@ sudo podman run --name {instance_name} -e GRANT_SUDO=yes --user root {[f"-p {por
         )
 
         # 인스턴스 등록
-        elbv2.register_targets(
+        elbv2_client.register_targets(
             TargetGroupArn=target_group_arn,
             Targets=[{'Id': instance_id}]
         )

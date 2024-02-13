@@ -1,10 +1,12 @@
 
 variable "region" {
     type = string
+    default = "us-west-2"
 }
 
 variable "profile" {
     type = string
+    default = "kmubigdata"
 }
 
 variable "prefix" {
@@ -14,5 +16,6 @@ variable "prefix" {
 
 variable "domain" {
     type = string
+    default = "notebook.ddps.cloud"
 }
 
