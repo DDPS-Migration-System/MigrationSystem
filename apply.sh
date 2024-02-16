@@ -51,4 +51,4 @@ system_end_time=$(date +%s)
 
 total_time=$((system_end_time - system_start_time))
 
-cat "Total time: $total_time sec"
+echo Total time: $total_time sec

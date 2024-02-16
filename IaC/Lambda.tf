@@ -2,6 +2,8 @@ resource "aws_lambda_function" "stablespot_create_spot" {
   function_name = "stablespot-create-spot"
   handler       = "lambda_function.lambda_handler" # 가정: Lambda 함수의 핸들러는 index 파일의 handler 메서드
   runtime       = "python3.10"
+  memory_size   = 1 * 1024
+  timeout       = 900
   role          = aws_iam_role.lambda_exec_role.arn
   filename      = "${path.module}/stablespot-create-spot.zip"
 
@@ -16,6 +18,8 @@ resource "aws_lambda_function" "stablespot_migration_by_interrupt" {
   function_name = "stablespot-migration-by-interrupt"
   handler       = "lambda_function.lambda_handler"
   runtime       = "python3.10"
+  memory_size   = 1 * 1024
+  timeout       = 900
   role          = aws_iam_role.lambda_exec_role.arn
   filename      = "${path.module}/stablespot-migration-by-interrupt.zip"
 
@@ -30,6 +34,8 @@ resource "aws_lambda_function" "stablespot_paginator" {
   function_name = "stablespot-paginator"
   handler       = "lambda_function.lambda_handler"
   runtime       = "python3.10"
+  memory_size   = 1 * 1024
+  timeout       = 900
   role          = aws_iam_role.lambda_exec_role.arn
   filename      = "${path.module}/stablespot-paginator.zip"
 
@@ -44,6 +50,8 @@ resource "aws_lambda_function" "stablespot_controller" {
   function_name = "stablespot-controller"
   handler       = "lambda_function.lambda_handler"
   runtime       = "python3.10"
+  memory_size   = 1 * 1024
+  timeout       = 900
   role          = aws_iam_role.lambda_exec_role.arn
   filename      = "${path.module}/stablespot-controller.zip"
 
@@ -58,6 +66,8 @@ resource "aws_lambda_function" "stablespot_registor" {
   function_name = "stablespot-registor"
   handler       = "lambda_function.lambda_handler"
   runtime       = "python3.10"
+  memory_size   = 1 * 1024
+  timeout       = 900
   role          = aws_iam_role.lambda_exec_role.arn
   filename      = "${path.module}/stablespot-registor.zip"
 
@@ -89,7 +99,6 @@ resource "aws_iam_role" "lambda_exec_role" {
 
 resource "aws_lambda_function_url" "stablespot_create_spot_url" {
   function_name = aws_lambda_function.stablespot_create_spot.function_name
-  qualifier     = "$LATEST"
 
   authorization_type = "NONE" # 'NONE', 'AWS_IAM' 또는 'JWT' 중에서 선택
 
@@ -106,30 +115,56 @@ resource "aws_lambda_function_url" "stablespot_create_spot_url" {
 
 resource "aws_lambda_function_url" "stablespot_migration_by_interrupt_url" {
   function_name = aws_lambda_function.stablespot_migration_by_interrupt.function_name
-  qualifier     = "$LATEST"
 
   authorization_type = "NONE"
 }
 
 resource "aws_lambda_function_url" "stablespot_paginator_url" {
   function_name = aws_lambda_function.stablespot_paginator.function_name
-  qualifier     = "$LATEST"
 
   authorization_type = "NONE"
 }
 
 resource "aws_lambda_function_url" "stablespot_controller_url" {
   function_name = aws_lambda_function.stablespot_controller.function_name
-  qualifier     = "$LATEST"
 
   authorization_type = "NONE"
 }
 
 resource "aws_lambda_function_url" "stablespot_registor_url" {
   function_name = aws_lambda_function.stablespot_registor.function_name
-  qualifier     = "$LATEST"
 
   authorization_type = "NONE"
+}
+
+resource "aws_iam_role_policy_attachment" "lambda-attach-ssm-policy" {
+  role       = aws_iam_role.lambda_exec_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_role_policy_attachment" "lambda-attach-ec2-full-access" {
+  role       = aws_iam_role.lambda_exec_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "lambda-attach-S3-full-access" {
+  role       = aws_iam_role.lambda_exec_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "lambda-attach-ssm-full-access" {
+  role       = aws_iam_role.lambda_exec_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMFullAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "lambda-attach-lambda-full-access" {
+  role       = aws_iam_role.lambda_exec_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AWSLambda_FullAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "lambda-attach-spot-fleet-tagging-role" {
+  role       = aws_iam_role.lambda_exec_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2SpotFleetTaggingRole"
 }
 
 output "stablespot_create_spot_function_url" {

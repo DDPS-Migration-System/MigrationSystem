@@ -56,7 +56,7 @@ resource "aws_cognito_user_pool_client" "stablespot_user_pool_client" {
 }
 
 resource "aws_cognito_user_pool_domain" "stablespot_domain" {
-  domain       = "your-cognito-domain"
+  domain       = "${var.prefix}-cog-domain"
   user_pool_id = aws_cognito_user_pool.stablespot_user_pool.id
 }
 

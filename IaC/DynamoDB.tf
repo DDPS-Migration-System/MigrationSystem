@@ -1,7 +1,8 @@
-resource "aws_dynamodb_table" "example_table" {
+resource "aws_dynamodb_table" "stablespot_table" {
   name         = "${var.prefix}DynamoDB"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "InstanceId"
+  range_key    = "InstanceName"
 
   attribute {
     name = "InstanceId"
@@ -10,41 +11,6 @@ resource "aws_dynamodb_table" "example_table" {
 
   attribute {
     name = "InstanceName"
-    type = "S"
-  }
-
-  attribute {
-    name = "InstanceType"
-    type = "S"
-  }
-
-  attribute {
-    name = "AvailabilityZone"
-    type = "S"
-  }
-
-  attribute {
-    name = "Status"
-    type = "S"
-  }
-
-  attribute {
-    name = "UserName"
-    type = "S"
-  }
-
-  attribute {
-    name = "UserData"
-    type = "S"
-  }
-
-  attribute {
-    name = "SupportSSH"
-    type = "S"
-  }
-
-  attribute {
-    name = "SupportWebService"
     type = "S"
   }
 
