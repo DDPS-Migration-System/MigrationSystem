@@ -14,6 +14,18 @@ echo Please enter the Domain Name for web service you want:
 read -r -p "    " domain_name
 echo
 
+echo "Admin User's email"
+read -r -p "    " email
+echo
+
+echo "Admin User's username"
+read -r -p "    " username
+echo
+
+echo "Admin User's password"
+read -r -p "    " password
+echo
+
 cat << EOF > ./IaC/variables.tf
 
 variable "region" {
@@ -34,6 +46,21 @@ variable "prefix" {
 variable "domain" {
     type = string
     default = "$domain_name"
+}
+
+variable "admin_email" {
+    type = string
+    default = "$email"
+}
+
+variable "admin_username" {
+    type = string
+    default = "$username"
+}
+
+variable "admin_password" {
+    type = string
+    default = "$password"
 }
 
 EOF

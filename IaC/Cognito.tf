@@ -19,6 +19,16 @@ resource "aws_cognito_user_pool" "stablespot_user_pool" {
     }
   }
 
+  schema {
+    attribute_data_type      = "String"
+    name                     = "custom:isAdmin"
+    mutable                  = true
+    string_attribute_constraints {
+      min_length            = 4
+      max_length            = 5
+    }
+  }
+
   auto_verified_attributes = ["email"]
 
   tags = {
@@ -58,6 +68,28 @@ resource "aws_cognito_user_pool_client" "stablespot_user_pool_client" {
 resource "aws_cognito_user_pool_domain" "stablespot_domain" {
   domain       = "${var.prefix}-cog-domain"
   user_pool_id = aws_cognito_user_pool.stablespot_user_pool.id
+}
+
+resource "null_resource" "create_initial_admin_user_with_permanent_password" {
+  depends_on = [aws_cognito_user_pool.stablespot_user_pool]
+
+  provisioner "local-exec" {
+    command = <<EOT
+    aws cognito-idp admin-create-user \
+      --user-pool-id ${aws_cognito_user_pool.stablespot_user_pool.id} \
+      --username ${var.admin_username} \
+      --user-attributes Name="email",Value="${var.admin_email}" Name="email_verified",Value="true" \
+      --message-action "SUPPRESS" \
+      --region ${var.region}
+
+    aws cognito-idp admin-set-user-password \
+      --user-pool-id ${aws_cognito_user_pool.stablespot_user_pool.id} \
+      --username ${var.admin_username} \
+      --password "${var.admin_password}" \
+      --permanent \
+      --region ${var.region}
+    EOT
+  }
 }
 
 # Cognito 사용자 풀 ARN 출력

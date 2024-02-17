@@ -27,3 +27,15 @@ resource "aws_ssm_parameter" "efs_id" {
   type = "String"
   value = aws_efs_file_system.efs.id
 }
+
+resource "aws_ssm_parameter" "cognito_user_pool_id" {
+  name = "${var.prefix}-user-pool-id"
+  type = "String"
+  value = aws_cognito_user_pool.stablespot_user_pool.id
+}
+
+resource "aws_ssm_parameter" "cognito_user_pool_client_id" {
+  name = "${var.prefix}-user-pool-client-id"
+  type = "String"
+  value = aws_cognito_user_pool_client.stablespot_user_pool_client.id
+}
