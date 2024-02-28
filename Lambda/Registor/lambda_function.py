@@ -13,9 +13,9 @@ def lambda_handler(event, context):
     for pool in response['UserPools']:
         if pool['Name'] == pool_name:
             user_pool_id = pool['Id']
-    username = event['queryStringParameters']['username']
-    password = event['queryStringParameters']['password']
-    email = event['queryStringParameters']['email']
+    username = event['queryStringParameters']['UserName']
+    password = event['queryStringParameters']['Password']
+    email = event['queryStringParameters']['Email']
     isAdmin = event['queryStringParameters']['isAdmin']
 
     try:
