@@ -12,9 +12,17 @@ table = dynamodb.Table(f'{prefix}DynamoDB')
 
 def lambda_handler(event, context):
     # 마이그레이션 종류 얻어옴
-    migration_type = event["queryStringParameters"]["migrationType"]
-    # 인터럽트가 발생한 인스턴스의 ID 얻어옴
-    instance_id = event["queryStringParameters"]["instanceId"]
+    migration_type = None
+    instance_id = None
+    if 'detail-type' in event:
+        if event['detail-type'] == "EC2 Spot Instance Interruption Warning":
+            migration_type = "interrupted"
+            instance_id = event['detail']['instance-id']
+    else:
+        return {
+            "statusCode": 200,
+            "message": "Unknown Migrate Type"
+        }
     # 현재 가동중인 인스턴스 정보를 저장하는 db에서 인스턴스 구성 설정을 가져옴(Userdata)
     dynamo_response = table.get_item(
         Key={
@@ -42,17 +50,17 @@ def lambda_handler(event, context):
     instance_type_to_migrate = None
     if migration_type == 'interrupted':
     ### 현재 인스턴스 타입과 같은 하드웨어 size인 최적의 인스턴스를 선택함
-        instance_type_to_migrate = selectInstance(InstanceType=instance_type, vCPU=instance_cpu, MEM=instance_mem)
+        instance_type_to_migrate = selectInstance(InstanceType=instance_type, vCPU=f"{instance_cpu}-{instance_cpu}", MEM=f"{instance_mem}-{instance_mem}")
     ## CPU/MEM Usage High/Low에 의한 마이그레이션의 경우
     elif migration_type == 'cpuHigh':
-        instance_type_to_migrate, az_to_migrate = selectInstance(InstanceType=instance_type, vCPU=instance_cpu*2, MEM=instance_mem)
+        instance_type_to_migrate, az_to_migrate = selectInstance(InstanceType=instance_type, vCPU=f"{instance_cpu*2}-{instance_cpu*2}", MEM=f"{instance_mem}-{instance_mem}")
     ### 변경된 하드웨어 size인 최적의 인스턴스를 선택함
     elif migration_type == 'cpuLow':
-        instance_type_to_migrate, az_to_migrate = selectInstance(InstanceType=instance_type, vCPU=instance_cpu//2, MEM=instance_mem)
+        instance_type_to_migrate, az_to_migrate = selectInstance(InstanceType=instance_type, vCPU=f"{instance_cpu//2}-{instance_cpu//2}", MEM=f"{instance_mem}-{instance_mem}")
     elif migration_type == 'memHigh':
-        instance_type_to_migrate, az_to_migrate = selectInstance(InstanceType=instance_type, vCPU=instance_cpu, MEM=instance_mem*2)
+        instance_type_to_migrate, az_to_migrate = selectInstance(InstanceType=instance_type, vCPU=f"{instance_cpu}-{instance_cpu}", MEM=f"{instance_mem*2}-{instance_mem*2}")
     elif migration_type == 'memLow':
-        instance_type_to_migrate, az_to_migrate = selectInstance(InstanceType=instance_type, vCPU=instance_cpu, MEM=instance_mem//2)
+        instance_type_to_migrate, az_to_migrate = selectInstance(InstanceType=instance_type, vCPU=f"{instance_cpu}-{instance_cpu}", MEM=f"{instance_mem//2}-{instance_mem//2}")
     # 선택한 인스턴스 타입을 프로비저닝하고, 마이그레이션을 위한 환경 구성을 Userdata를 통해 구성
     response = ec2_client.request_spot_instances(
         InstanceCount=1,

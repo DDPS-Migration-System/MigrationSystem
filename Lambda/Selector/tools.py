@@ -6,9 +6,16 @@ ec2_client = boto3.client('ec2')
 
 def selectInstance(InstanceType=None, vCPU=None, MEM=None, GPU=None):
     if InstanceType != None:
-        pass
+        return (InstanceType, 'us-west-1a')
     else:
-        pass
+        CPU_MIN = vCPU.split("-")[0]
+        CPU_MAX = vCPU.split("-")[1]
+        MEM_MIN = MEM.split("-")[0]
+        MEM_MAX = MEM.split("-")[1]
+        if GPU != None:
+            GPU_MIN = GPU.split("-")[0]
+            GPU_MAX = GPU.split("-")[1]
+        return ('t3.small', 'us-west-1a')
 
 def waiter_send_message(instanceId, command):
     response = ssm_client.send_command(

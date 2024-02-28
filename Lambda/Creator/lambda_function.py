@@ -19,9 +19,10 @@ def lambda_handler(event, context):
     # API를 통해 생성하고자 하는 인스턴스 정보를 얻어옴 (Name, Userdata, Port, Security, hardware size 등)
     instance_name = event["queryStringParameters"]['InstanceName']
     username = event["queryStringParameters"]['UserName']
-    userdata = event["queryStringParameters"]['Userdata']
+    # userdata = event["queryStringParameters"]['UserData']
     docker_image = event["queryStringParameters"]['DockerImage']
-    ports = event["queryStringParameters"]['Ports']
+    alpha = event["queryStringParameters"]['alpha']
+    ports = event["queryStringParameters"]['Ports'].split(",")
     ssh_support = event["queryStringParameters"]['SupportSSH']
     web_support = event["queryStringParameters"]['SupportWebService']
     # hardware size를 통해 최적의 인스턴스를 선택
@@ -48,7 +49,7 @@ sudo make -C efs-utils/ rpm
 sudo yum -y install efs-utils/build/amazon-efs-utils*rpm
 sudo mkdir {EFS_PATH}
 sudo mount -t efs -o tls {EFS_ID}:/ {EFS_PATH}
-sudo podman run --name {instance_name} -e GRANT_SUDO=yes --user root {[f"-p {port}" for port in ports].join(" ")} -d {docker_image} {userdata}
+sudo podman run --name {instance_name} -e GRANT_SUDO=yes --user root {[f"-p {port}" for port in ports].join(" ")} -d {docker_image}
 """
     init_userdata_x86_64 = f"""#!/bin/bash
 sudo yum update -y
@@ -109,6 +110,17 @@ sudo podman run --name {instance_name} -e GRANT_SUDO=yes --user root {[f"-p {por
                 }
             ]
         )
+    if web_support > 0:
+        security_group.authorize_ingress(
+            IpPermissions=[
+                {
+                    'IpProtocol': 'tcp',
+                    'FromPort': web_support,
+                    'ToPort':web_support,
+                    'IpRanges': [{'CidrIp': '0.0.0.0/0'}]
+                }
+            ]
+        )
     # iam 탐색
     spot_iam_role_arn = iam_client.get_role(RoleName=f"{prefix}-spot-instance-role")['Role']['Arn']
     response = ec2_client.request_spot_instances(
@@ -134,14 +146,14 @@ sudo podman run --name {instance_name} -e GRANT_SUDO=yes --user root {[f"-p {por
         'AvailabilityZone': az,
         'Status': 'running',
         'UserName': username,
-        'UserData': '',
+        'DockerImage': docker_image,
         'SupportSSH': '',
         'SupportWebService': ''
     }
     response = table.put_item(Item=item)
     # 생성된 인스턴스의 CPU, MEM Usage를 체크하는 EventBridge Alarm, Rule을 생성 후 Migrator에 연결
     # 웹페이지를 지원한다면 ALB에 연결
-    if web_support != False:
+    if web_support > 0:
         user_pool_id = None
         for user_pool in user_pools['UserPools']:
             if user_pool['Name'] == f"{prefix}-user-pool":
