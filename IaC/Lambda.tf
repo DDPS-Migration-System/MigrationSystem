@@ -1,7 +1,14 @@
+resource "aws_lambda_layer_version" "jose_layer" {
+  layer_name = "jose-layer"
+  compatible_runtimes = ["python3.11"]
+  filename = "jose_layer.zip"
+  description = "Lambda layer for python-jose"
+}
+
 resource "aws_lambda_function" "stablespot_create_spot" {
   function_name = "stablespot-create-spot"
   handler       = "lambda_function.lambda_handler" # 가정: Lambda 함수의 핸들러는 index 파일의 handler 메서드
-  runtime       = "python3.10"
+  runtime       = "python3.11"
   memory_size   = 1 * 1024
   timeout       = 900
   role          = aws_iam_role.lambda_exec_role.arn
@@ -12,12 +19,14 @@ resource "aws_lambda_function" "stablespot_create_spot" {
   tags = {
     Name = "${var.prefix}-create-spot"
   }
+
+  layers = [aws_lambda_layer_version.jose_layer.arn]
 }
 
 resource "aws_lambda_function" "stablespot_migration_by_interrupt" {
   function_name = "stablespot-migration-by-interrupt"
   handler       = "lambda_function.lambda_handler"
-  runtime       = "python3.10"
+  runtime       = "python3.11"
   memory_size   = 1 * 1024
   timeout       = 900
   role          = aws_iam_role.lambda_exec_role.arn
@@ -28,12 +37,14 @@ resource "aws_lambda_function" "stablespot_migration_by_interrupt" {
   tags = {
     Name = "${var.prefix}-migration-by-interrupt"
   }
+
+  layers = [aws_lambda_layer_version.jose_layer.arn]
 }
 
 resource "aws_lambda_function" "stablespot_paginator" {
   function_name = "stablespot-paginator"
   handler       = "lambda_function.lambda_handler"
-  runtime       = "python3.10"
+  runtime       = "python3.11"
   memory_size   = 1 * 1024
   timeout       = 900
   role          = aws_iam_role.lambda_exec_role.arn
@@ -44,12 +55,14 @@ resource "aws_lambda_function" "stablespot_paginator" {
   tags = {
     Name = "${var.prefix}-paginator"
   }
+
+  layers = [aws_lambda_layer_version.jose_layer.arn]
 }
 
 resource "aws_lambda_function" "stablespot_controller" {
   function_name = "stablespot-controller"
   handler       = "lambda_function.lambda_handler"
-  runtime       = "python3.10"
+  runtime       = "python3.11"
   memory_size   = 1 * 1024
   timeout       = 900
   role          = aws_iam_role.lambda_exec_role.arn
@@ -60,12 +73,14 @@ resource "aws_lambda_function" "stablespot_controller" {
   tags = {
     Name = "${var.prefix}-controller"
   }
+
+  layers = [aws_lambda_layer_version.jose_layer.arn]
 }
 
 resource "aws_lambda_function" "stablespot_registor" {
   function_name = "stablespot-registor"
   handler       = "lambda_function.lambda_handler"
-  runtime       = "python3.10"
+  runtime       = "python3.11"
   memory_size   = 1 * 1024
   timeout       = 900
   role          = aws_iam_role.lambda_exec_role.arn
@@ -76,6 +91,8 @@ resource "aws_lambda_function" "stablespot_registor" {
   tags = {
     Name = "${var.prefix}-registor"
   }
+
+  layers = [aws_lambda_layer_version.jose_layer.arn]
 }
 
 resource "aws_iam_role" "lambda_exec_role" {

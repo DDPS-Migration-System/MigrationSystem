@@ -71,6 +71,14 @@ zip -j ./IaC/stablespot-paginator.zip ./Lambda/Paginator/lambda_function.py ./La
 zip -j ./IaC/stablespot-controller.zip ./Lambda/Controller/lambda_function.py ./Lambda/Selector/tools.py ./Lambda/variables.py
 zip -j ./IaC/stablespot-registor.zip ./Lambda/Registor/lambda_function.py ./Lambda/Selector/tools.py ./Lambda/variables.py
 
+python3.11 -m venv stablespotenv
+source stablespotenv/bin/activate
+
+pip install python-jose -t ./python
+zip -r ./IaC/jose_layer.zip ./python
+
+deactivate
+
 terraform -chdir=./IaC/ init
 terraform -chdir=./IaC/ apply -auto-approve
 

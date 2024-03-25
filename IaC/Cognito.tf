@@ -41,28 +41,29 @@ resource "aws_cognito_user_pool_client" "stablespot_user_pool_client" {
   user_pool_id = aws_cognito_user_pool.stablespot_user_pool.id
 
   explicit_auth_flows = [
-    "ADMIN_NO_SRP_AUTH",
-    "CUSTOM_AUTH_FLOW_ONLY",
-    "USER_PASSWORD_AUTH"
+    "ALLOW_ADMIN_USER_PASSWORD_AUTH",
+    "ALLOW_USER_PASSWORD_AUTH",
+    "ALLOW_REFRESH_TOKEN_AUTH",
+    "ALLOW_USER_SRP_AUTH"
   ]
 
   generate_secret = true
 
-  callback_urls = ["https://your-callback-url.com"]
-  logout_urls   = ["https://your-logout-url.com"]
+  callback_urls = ["https://localhost:3000/main"]
+  logout_urls   = ["https://localhost:3000"]
 
-  allowed_oauth_flows = [
-    "code",
-    "implicit"
-  ]
+  # allowed_oauth_flows = [
+  #   "code",
+  #   "implicit"
+  # ]
 
-  allowed_oauth_scopes = [
-    "email",
-    "openid",
-    "profile"
-  ]
+  # allowed_oauth_scopes = [
+  #   "email",
+  #   "openid",
+  #   "profile"
+  # ]
 
-  allowed_oauth_flows_user_pool_client = true
+  # allowed_oauth_flows_user_pool_client = true
 }
 
 resource "aws_cognito_user_pool_domain" "stablespot_domain" {

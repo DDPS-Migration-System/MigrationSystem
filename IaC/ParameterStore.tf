@@ -39,3 +39,15 @@ resource "aws_ssm_parameter" "cognito_user_pool_client_id" {
   type = "String"
   value = aws_cognito_user_pool_client.stablespot_user_pool_client.id
 }
+
+resource "aws_ssm_parameter" "congito_user_pool_keys_url" {
+  name = "${var.prefix}-user-pool-keys-url"
+  type = "String"
+  value = "https://cognito-idp.${var.region}.amazonaws.com/${aws_cognito_user_pool.stablespot_user_pool.id}/.well-known/jwks.json"
+}
+
+resource "aws_ssm_parameter" "cognito_user_pool_client_secret" {
+  name = "${var.prefix}-user-pool-client-secret"
+  type = "String"
+  value = aws_cognito_user_pool_client.stablespot_user_pool_client.client_secret
+}
