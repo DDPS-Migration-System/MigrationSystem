@@ -21,7 +21,7 @@ resource "aws_cognito_user_pool" "stablespot_user_pool" {
 
   schema {
     attribute_data_type      = "String"
-    name                     = "custom:isAdmin"
+    name                     = "isAdmin"
     mutable                  = true
     string_attribute_constraints {
       min_length            = 4
