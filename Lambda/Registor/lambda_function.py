@@ -21,7 +21,7 @@ def get_ssm_parameter(parameter_name):
     except ClientError as e:
         print(f"Failed to retrieve {parameter_name} from SSM Parameter Store: {e}")
         raise e
-    
+
 def lambda_handler(event, context):
     user_pool_id = get_ssm_parameter('stablespot-user-pool-id')
     response = cognito_client.list_user_pools(MaxResults=60)  # MaxResults는 필요에 따라 조정하세요
@@ -30,7 +30,6 @@ def lambda_handler(event, context):
     password = body['password']
     email = body['email']
     isAdmin = body['isAdmin']
-    print(body)
 
     try:
         # 새 사용자 생성 및 사용자 풀에 등록
@@ -64,11 +63,13 @@ def lambda_handler(event, context):
             Password=password,
             Permanent=True  # 임시 비밀번호가 아닌 영구 비밀번호로 설정
         )
-        
+        print("Password set successfully for the user.:", response)
+
         return {
             "statusCode": 200,
             "body": json.dumps({"message": "User created Succesfully."})
         }
+        
 
     except cognito_client.exceptions.UsernameExistsException as e:
         return {
