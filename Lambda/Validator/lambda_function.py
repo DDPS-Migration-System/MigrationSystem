@@ -31,8 +31,9 @@ def get_secret_hash(username, client_id):
 
 def lambda_handler(event, context):
     try:
-        email = event['email']
-        password = event['password']
+        body = json.loads(event['body'])
+        email = body['email']
+        password = body['password']
     except KeyError:
         print("'email' or 'password' key is missing from the event object.")
         return {
@@ -108,6 +109,7 @@ def lambda_handler(event, context):
                 }
             })
         }
+
     except ClientError as e:
         # 로그인 실패 응답
         print(f"Login failed: {e}")
