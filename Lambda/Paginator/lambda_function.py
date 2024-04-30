@@ -5,9 +5,6 @@ from variables import *
 # DynamoDB 서비스 리소스 생성
 dynamodb = boto3.resource('dynamodb')
 
-# 사용할 테이블 이름 지정
-table_name = 'YourTableName'
-
 # 쿼리할 테이블 선택
 table = dynamodb.Table(f'{prefix}DynamoDB')
 
