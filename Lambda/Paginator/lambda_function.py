@@ -1,5 +1,6 @@
 import boto3
 import json
+from boto3.dynamodb.conditions import Attr
 from variables import *
 
 # DynamoDB 서비스 리소스 생성
@@ -9,20 +10,37 @@ dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table(f'{prefix}DynamoDB')
 
 def lambda_handler(event, context):
-    # API를 호출한 유저의 닉네임을 가져옴
-    username = event["queryStringParameters"]["UserName"]
-
-    # 인스턴스 정보를 관리하는 DB에 존재하는 elements를 가져옴
-    response = table.scan(
-        FilterExpression=boto3.dynamodb.conditions.Attr('UserName').eq(username)
-    )
-    items = response['Items']
-    # 가져온 elements들 중, 유저의 닉네임이 일치하는 elements만 리턴
-    page = []
-    for item in items:
-        if username == item['UserName']:
-            page.append(item)
-    return {
-        "statusCode": 200,
-        "message": json.dumps(page)
-    }
+    try:
+        # API를 호출한 유저의 닉네임을 가져옴
+        username = event["queryStringParameters"]["UserName"].strip()
+        
+        # DynamoDB에서 필터 조건을 사용하여 항목 조회
+        response = table.scan(
+            FilterExpression=Attr('UserName').eq(username)
+        )
+        items = response['Items']
+        print("필터링된 항목: ", items)
+        
+        # 변환된 데이터 구조로 변환
+        page = [
+            {
+                "servername": item.get('InstanceName'),
+                "id": item.get('InstanceId'),
+                "type": item.get('InstanceType'),
+                "isRunning": item.get('Status'),
+                "address": item.get('IpAddress'),
+                "isWeb": item.get("isWeb"),
+                "port": item.get("port")
+            }
+            for item in items
+        ]
+        
+        return {
+            "statusCode": 200,
+            "body": json.dumps(page)
+        }
+    except Exception as e:
+        return {
+            "statusCode": 500,
+            "body": json.dumps({"error": str(e)})
+        }
