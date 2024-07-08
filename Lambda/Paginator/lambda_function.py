@@ -12,8 +12,9 @@ table = dynamodb.Table(f'{prefix}DynamoDB')
 def lambda_handler(event, context):
     try:
         # API를 호출한 유저의 닉네임을 가져옴
-        username = event["queryStringParameters"]["UserName"].strip()
-        
+        body = json.loads(event['body'])
+        username = body["UserName"].strip()
+
         # DynamoDB에서 필터 조건을 사용하여 항목 조회
         response = table.scan(
             FilterExpression=Attr('UserName').eq(username)
@@ -27,10 +28,11 @@ def lambda_handler(event, context):
                 "servername": item.get('InstanceName'),
                 "id": item.get('InstanceId'),
                 "type": item.get('InstanceType'),
-                "isRunning": item.get('Status'),
+                "isRunning": item.get('isRunning'),
                 "address": item.get('IpAddress'),
                 "isWeb": item.get("isWeb"),
-                "port": item.get("port")
+                "port": item.get("port"),
+                "SpotReqId": item.get("SpotReqId")
             }
             for item in items
         ]

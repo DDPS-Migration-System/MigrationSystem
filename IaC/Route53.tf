@@ -23,6 +23,20 @@ resource "aws_acm_certificate" "acm" {
   }
 }
 
+resource "aws_acm_certificate" "acm" {
+  provider = aws.us-west-2
+  domain_name       = var.domain
+  validation_method = "DNS"
+
+  tags = {
+    Environment = "test"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 resource "aws_route53_record" "acm_validation" {
   for_each = {
     for dvo in aws_acm_certificate.acm.domain_validation_options : dvo.domain_name => {

@@ -14,3 +14,8 @@ resource "aws_iam_role" "spot-instance-role" {
     ]
   })
 }
+
+resource "aws_iam_instance_profile" "spot-instance-profile" {
+  name = "${var.prefix}-spot-instance-profile"
+  role = aws_iam_role.spot-instance-role.name
+}

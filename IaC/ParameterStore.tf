@@ -51,3 +51,9 @@ resource "aws_ssm_parameter" "cognito_user_pool_client_secret" {
   type = "String"
   value = aws_cognito_user_pool_client.stablespot_user_pool_client.client_secret
 }
+
+resource "aws_ssm_parameter" "aws_acm_certificate" {
+  name = "${var.prefix}-aws_acm_certificate"
+  type = "String"
+  value = aws_acm_certificate.acm.arn
+}
